@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+  <title>hoppu</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <!-- iOS ignores manifest icons and SVG; it wants this PNG. -->
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="hoppu">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="app.css">
+  <!-- Classic script, global L. Deferred scripts and modules run in
+       document order, so L exists before js/app.js runs. -->
+  <script src="vendor/leaflet/leaflet.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <!-- Wordmark (logo concept 3b, assets/logos/index.html): speed lines,
+         then "hoppu" drawn as round-capped strokes, the o a stopwatch.
+         Letters use currentColor, so they follow the theme. -->
+    <h1 class="brand">
+      <svg class="wordmark" viewBox="36 16 352 122" role="img" aria-label="hoppu"
+           fill="none" stroke-linecap="round">
+        <path d="M46 41.6H64M40 54.8H61.6M46 68H64" stroke="#ff6319" stroke-width="5.4"/>
+        <g transform="translate(86 0)">
+          <g stroke="currentColor" stroke-width="14" stroke-linejoin="round">
+            <path d="M7 27V93M7 75A18 18 0 0 1 43 75V93"/>
+            <path d="M131 57V127"/><circle cx="149" cy="75" r="18"/>
+            <path d="M193 57V127"/><circle cx="211" cy="75" r="18"/>
+            <path d="M255 57V75A18 18 0 0 0 291 75M291 57V93"/>
+          </g>
+          <circle cx="87" cy="75" r="18" stroke="#007ac9" stroke-width="14"/>
+          <path d="M87 47V42M82 40H92" stroke="currentColor" stroke-width="6"/>
+          <path d="M87 75L95 65" stroke="#ff6319" stroke-width="5"/>
+        </g>
+      </svg>
+    </h1>
+    <button id="open-settings" type="button" class="icon-btn" aria-label="Settings" title="Settings">
+      <!-- Gear outline (Feather icons "settings", MIT licence). -->
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </header>
+
+  <main id="main-view">
+    <!-- Shown until the user has saved their own Digitransit API key. -->
+    <section id="key-setup" class="card" hidden>
+      <h2>Your Digitransit API key</h2>
+      <p>
+        hoppu runs entirely on this device and talks to Digitransit with
+        <strong>your own</strong> free API key. Register at the
+        <a href="https://digitransit.fi/en/developers/api-registration/" target="_blank" rel="noopener">Digitransit developer portal</a>,
+        then paste the key here.
+      </p>
+      <p>
+        Your key and everything you save (places, settings, own transfer
+        times) are stored only in this browser. Searches go straight from
+        here to Digitransit; there is no hoppu server.
+      </p>
+      <p class="hint">
+        More about hoppu and how it works:
+        <a href="https://github.com/juhonikula/hoppu" target="_blank" rel="noopener">github.com/juhonikula/hoppu</a>
+      </p>
+      <form id="key-form" class="row">
+        <input id="key-input" type="password" autocomplete="off" spellcheck="false"
+               placeholder="API key" aria-label="API key" required>
+        <button type="submit">Save</button>
+      </form>
+    </section>
+
+    <!-- novalidate: From may be empty for "Hoppu!", so app.js checks. -->
+    <form id="search-form" class="card" hidden novalidate>
+      <div class="field">
+        <label for="from">From</label>
+        <div class="combo">
+          <input id="from" type="text" placeholder="Stop or address" autocomplete="off" spellcheck="false">
+          <!-- Crosshair: start from your GPS position (same as "My location"
+               in the suggestions). -->
+          <button id="from-here" type="button" class="combo-btn" aria-label="Use my location" title="My location">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+              <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+            </svg>
+          </button>
+          <ul id="from-list" class="suggestions" role="listbox" aria-label="From suggestions" hidden></ul>
+        </div>
+      </div>
+      <div class="field">
+        <label for="to">To</label>
+        <div class="combo">
+          <input id="to" type="text" placeholder="Stop or address" autocomplete="off" spellcheck="false">
+          <ul id="to-list" class="suggestions" role="listbox" aria-label="To suggestions" hidden></ul>
+        </div>
+      </div>
+      <!-- Saved places; a tap fills To. Save with ☆ in the dropdown. -->
+      <div id="favorite-chips" class="chips" aria-label="Saved places" hidden></div>
+      <div class="row">
+        <label class="field grow">
+          <span>Date</span>
+          <input id="date" type="date">
+        </label>
+        <div class="field grow">
+          <!-- Leave at / Arrive by applies to Search only; Hoppu! always
+               leaves now. -->
+          <div class="time-mode" role="radiogroup" aria-label="Time is">
+            <label><input type="radio" name="time-mode" value="leave" checked><span>Leave at</span></label>
+            <label><input type="radio" name="time-mode" value="arrive"><span>Arrive by</span></label>
+          </div>
+          <input id="time" type="time" aria-label="Time" aria-describedby="time-hint">
+        </div>
+      </div>
+      <p id="time-hint" class="hint">Empty time = now.</p>
+
+      <div class="actions">
+        <button id="search" type="submit" class="primary">Search</button>
+        <button id="hoppu-now" type="button" class="hoppu" aria-describedby="hoppu-hint">Hoppu!</button>
+      </div>
+      <p id="hoppu-hint" class="hint after">
+        Hoppu! leaves right away with your hoppu settings. Empty From = your location.
+      </p>
+    </form>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <section id="comparison" class="comparison" hidden></section>
+    <!-- Paging: one request each, using the result page's cursors. -->
+    <button id="load-earlier" type="button" class="secondary small page-btn" hidden>Earlier options</button>
+    <ol id="results" class="results"></ol>
+    <button id="load-later" type="button" class="secondary page-btn later" hidden>Show more options</button>
+  </main>
+
+  <!-- Detail view: map on top, vertical timeline below. Opened by tapping a
+       result; has its own history entry, so the phone's back button closes it. -->
+  <section id="detail" class="detail" hidden aria-labelledby="detail-title">
+    <div class="detail-bar">
+      <button id="detail-back" type="button" class="icon-btn" aria-label="Back to results">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none"
+             stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 5l-7 7 7 7"/>
+        </svg>
+      </button>
+      <h2 id="detail-title"></h2>
+    </div>
+    <div id="map" class="map"></div>
+    <!-- After following options: one chip per version of the route. -->
+    <div id="versions" class="versions" hidden></div>
+    <ol id="timeline" class="timeline"></ol>
+    <!-- Ride view: a vehicle's stops as possible exits, in a sheet over
+         the lower part of the screen; the map above stays visible. -->
+    <section id="ride" class="ride-sheet" hidden aria-label="Stops"></section>
+  </section>
+
+  <dialog id="settings" class="sheet" aria-labelledby="settings-title">
+    <div class="sheet-head">
+      <h2 id="settings-title">Settings</h2>
+      <div class="sheet-actions">
+        <button id="open-help" type="button" class="icon-btn" aria-label="How hoppu works" title="How hoppu works">
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="9.5"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r="0.6" fill="currentColor"/>
+          </svg>
+        </button>
+        <button id="close-settings" type="button" class="icon-btn" aria-label="Close settings">
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none"
+               stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <path d="M6 6l12 12M18 6L6 18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="tabs" role="tablist">
+      <button id="tab-normal" type="button" role="tab" aria-selected="true" aria-controls="panel-normal">Normal</button>
+      <button id="tab-hoppu" type="button" role="tab" aria-selected="false" aria-controls="panel-hoppu">Hoppu</button>
+    </div>
+    <!-- Panels are filled by app.js from one field list, so both match. -->
+    <div id="panel-normal" class="profile-panel" role="tabpanel" aria-labelledby="tab-normal"></div>
+    <div id="panel-hoppu" class="profile-panel" role="tabpanel" aria-labelledby="tab-hoppu" hidden></div>
+
+    <section class="sheet-section">
+      <h3>Saved places</h3>
+      <p class="hint">Save with ☆ in the place suggestions. They show as buttons under To.</p>
+      <p id="favorites-empty" class="hint">None saved yet.</p>
+      <ul id="favorites-list" class="favorites-list"></ul>
+    </section>
+
+    <section class="sheet-section">
+      <h3>Your transfer times</h3>
+      <p class="hint">
+        Set in a route's details at a transfer ("My time"). Each save is kept;
+        the averages are used instead of the walk estimate for that exact
+        change. Open a change to delete single times.
+      </p>
+      <p id="transfer-times-empty" class="hint">None saved yet.</p>
+      <ul id="transfer-times" class="transfer-times"></ul>
+    </section>
+
+    <section class="sheet-section">
+      <h3>API key</h3>
+      <p class="hint">Your Digitransit key is stored only in this browser.</p>
+      <button id="forget-key" type="button" class="secondary danger">Forget API key</button>
+    </section>
+  </dialog>
+
+  <!-- Tutorial, opened from the settings sheet (ⓘ). Keep it in step with
+       the app: every user-visible change updates this text. -->
+  <dialog id="help" class="sheet help" aria-labelledby="help-title">
+    <div class="sheet-head">
+      <h2 id="help-title">How hoppu works</h2>
+      <button id="close-help" type="button" class="icon-btn" aria-label="Close help">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none"
+             stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <path d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+      </button>
+    </div>
+
+    <p>
+      hoppu finds public transport routes in the Helsinki region like the HSL
+      app, but lets you plan transfers as tight as you dare and shows which
+      ones you can still make walking or running.
+    </p>
+
+    <section class="sheet-section">
+      <h3>Searching</h3>
+      <ul>
+        <li><b>From / To:</b> type a stop or an address and pick a suggestion.
+          ☆ saves a place; saved places show as buttons under To. The
+          crosshair in From uses your location.</li>
+        <li><b>Search</b> plans with the <b>Normal</b> settings, at the time
+          you set (empty = now; Leave at or Arrive by).</li>
+        <li><b>Hoppu!</b> plans with the <b>Hoppu</b> settings, leaving now
+          (empty From = your location), and opens the fastest route
+          straight away. Back shows the other routes. Its routes start
+          now: you walk to the first stop right away and wait there if
+          you're early, instead of leaving at the last moment.</li>
+        <li><b>Earlier options</b> and <b>Show more options</b> load routes
+          before and after the ones shown.</li>
+      </ul>
+    </section>
+
+    <section class="sheet-section">
+      <h3>Reading a route</h3>
+      <p>
+        Tap a result for its details: a map and a timeline. Each transfer
+        shows how long you have between arriving and the next departure,
+        coloured by your own walking and running speeds over the walk:
+      </p>
+      <ul>
+        <li><span class="badge k-ok">green</span> 2 min or more to spare walking,
+          <span class="badge k-snug">amber</span> under 2 min,
+          <span class="badge k-tight">red</span> under 1 min;</li>
+        <li><span class="badge k-run">violet</span> only makeable running;</li>
+        <li>struck through: too short even running.</li>
+      </ul>
+      <p>
+        The first boarding is judged the same way, counted from when you
+        searched ("6:00 to the stop"): how long you have to get there from
+        your starting point if you leave right away.
+      </p>
+      <p>
+        The chip next to it shows the walk and run times; ⚠ marks walks of
+        400 m or more. "live" and "late" badges are realtime predictions.
+        Vehicles on your route move on the map live, with an arrow for
+        their heading.
+      </p>
+    </section>
+
+    <section class="sheet-section">
+      <h3>Transfer options</h3>
+      <p>
+        <b>Show options here</b> under any boarding plans again from where
+        the previous vehicle drops you, around the planned time (for the
+        first one: your starting point, from when you searched). You see
+        the two departures before the current one, the current one and two
+        backups, also from other stops nearby, with the walk to each, the
+        arrival and the difference to your plan. <b>Original</b> marks the
+        departure of the route as first planned; once you follow another
+        option, that one is <b>current</b>. Departures too short even
+        running stay on the list, faded and struck through: a delay can
+        still make them. To find two earlier ones, the search looks from 10
+        minutes before you arrive, then 20 and 30 if needed (a request
+        each).
+        Tap one (or its dashed line or live vehicle on the map) to follow
+        it.
+        <b>Refresh options</b> fetches fresh realtime. For a new plan from
+        where you are now, search again from your location.
+      </p>
+      <p>
+        <b>My time</b> saves how long a specific change took you (e.g.
+        "Helsinki → Rautatientori: 2:10", typed m:ss), with <b>Save
+        walked</b> or <b>Save ran</b>. Every save is kept: your average
+        walking time there replaces the walk estimate for that change on
+        every route, your average running time the run estimate (a mode
+        you haven't timed is scaled from the other by your speeds). In
+        Settings, under the walking and running speed, the times with a
+        known distance give your average pace. It's only shown there:
+        the planner keeps using the speeds you set.
+      </p>
+    </section>
+
+    <section class="sheet-section">
+      <h3>Stops of a vehicle</h3>
+      <p>
+        Tap a line's badge in the timeline, the line or its live vehicle on
+        the map, or the vehicle on a result card. A sheet
+        lists its stops from where you board to the end of the line, and
+        where the vehicle is now ("Coming" while it's still on its way to
+        your stop).
+      </p>
+      <p>
+        <b>Show options</b> at a stop shows what you'd catch by getting off
+        there instead: walking the rest of the way, or the next vehicles
+        with the time you'd have to change. Nothing changes until you tap
+        an option.
+      </p>
+    </section>
+
+    <section class="sheet-section">
+      <h3>Going back</h3>
+      <p>
+        Each option you follow makes a new version of the route. Chips
+        under the map list them with their arrival times (Planned, #2, …),
+        and earlier versions show on the map as grey lines where they
+        differ. Tap a chip or a grey line to switch back.
+      </p>
+    </section>
+
+    <section class="sheet-section">
+      <h3>Settings</h3>
+      <p>
+        Two profiles: <b>Normal</b> is used by Search, <b>Hoppu</b> by
+        Hoppu!. Empty fields use the planner's default.
+      </p>
+      <dl>
+        <dt>Transfer margin (min)</dt>
+        <dd>Extra time the planner keeps for every change. The HSL app uses
+          1.5 min; 0 plans as tight as the timetable allows.</dd>
+        <dt>Speed unit</dt>
+        <dd>How both profiles show and take the speeds below: km/h, m/s or
+          pace in min/km (type 5:30, or 5.30 / 5,30 on a number pad). The
+          grey line under each speed shows it in the other units.</dd>
+        <dt>Walking speed</dt>
+        <dd>Used for planning, and for the transfer colours.</dd>
+        <dt>Running speed</dt>
+        <dd>Only for the colours: transfers you can make only at this speed
+          are violet.</dd>
+        <dt>Walk reluctance</dt>
+        <dd>How much the planner avoids walking. 1 = a minute of walking
+          counts like a minute of riding; the HSL app uses 1.8.</dd>
+        <dt>Board cost (s)</dt>
+        <dd>Penalty per boarding. A small one (Hoppu: 90 s) avoids routes
+          with extra changes that arrive at the same time.</dd>
+        <dt>Transfer cost (s)</dt>
+        <dd>Extra penalty per change (HSL app: 180 s).</dd>
+        <dt>Results</dt>
+        <dd>How many routes one search returns.</dd>
+        <dt>Compare with HSL app settings</dt>
+        <dd>Plans the same trip with the HSL app's settings too (one extra
+          request) and tells how much earlier you arrive.</dd>
+      </dl>
+      <p>
+        <b>Saved places</b> and <b>Your transfer times</b> can be removed
+        here. <b>Forget API key</b> removes your key from this browser.
+      </p>
+    </section>
+
+    <section class="sheet-section">
+      <h3>Your key and data</h3>
+      <p>
+        Everything stays in this browser: your key, places, settings and
+        times. hoppu has no server; it asks Digitransit directly with your
+        key, about one request per search, per opened stop list and per
+        "Show options" (up to four for a transfer's options). Digitransit's free keys are for personal use, a
+        few hundred requests a day.
+      </p>
+      <p>
+        On a phone, "Add to Home screen" installs hoppu as an app; it then
+        opens without a network too (searching needs one).
+      </p>
+    </section>
+  </dialog>
+</body>
+</html>

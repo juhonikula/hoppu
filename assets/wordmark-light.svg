@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="36 16 352 122" width="352" height="122" fill="none" stroke-linecap="round">
+  <!-- hoppu wordmark (logo concept 3b), as in the app header, with the
+       letters in a fixed colour for light backgrounds (the app uses
+       currentColor). For the public README. -->
+  <path d="M46 41.6H64M40 54.8H61.6M46 68H64" stroke="#ff6319" stroke-width="5.4"/>
+  <g transform="translate(86 0)">
+    <g stroke="#141821" stroke-width="14" stroke-linejoin="round">
+      <path d="M7 27V93M7 75A18 18 0 0 1 43 75V93"/>
+      <path d="M131 57V127"/><circle cx="149" cy="75" r="18"/>
+      <path d="M193 57V127"/><circle cx="211" cy="75" r="18"/>
+      <path d="M255 57V75A18 18 0 0 0 291 75M291 57V93"/>
+    </g>
+    <circle cx="87" cy="75" r="18" stroke="#007ac9" stroke-width="14"/>
+    <path d="M87 47V42M82 40H92" stroke="#141821" stroke-width="6"/>
+    <path d="M87 75L95 65" stroke="#ff6319" stroke-width="5"/>
+  </g>
+</svg>

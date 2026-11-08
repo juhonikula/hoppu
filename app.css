@@ -1,0 +1,694 @@
+/* Mobile-first, one column. Colour tokens switch with the system theme. */
+
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --text: #141821;
+  --muted: #5d6675;
+  --border: #d9dde3;
+  --accent: #0066cc;
+  --accent-text: #ffffff;
+  --tight: #c62828;
+  --snug: #b26a00;
+  --ok: #2e7d32;
+  /* Mode colours, close to HSL's own conventions. */
+  --bus: #007ac9;
+  --tram: #00985f;
+  --subway: #ff6319;
+  --rail: #8c4799;
+  --ferry: #00b9e4;
+  --walk: #8a929e;
+  --hoppu: #ff6319;
+  /* "Run": a transfer only reachable running; violet, distinct from train purple. */
+  --run: #7b3fe4;
+  --track: #e6e9ee;
+  --radius: 12px;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1220;
+    --surface: #141c2b;
+    --text: #e8ecf2;
+    --muted: #9aa4b2;
+    --border: #2a3446;
+    --accent: #4da3ff;
+    --accent-text: #08111f;
+    --tight: #ff6b6b;
+    --snug: #ffb74d;
+    --ok: #81c784;
+    --track: #222c3d;
+    --run: #b18cff;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+
+/* The hidden attribute must win over display rules below. */
+[hidden] { display: none !important; }
+
+.top, main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  padding-bottom: 8px;
+}
+.brand { margin: 0; line-height: 0; }
+.wordmark { height: 40px; width: auto; color: var(--text); }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text);
+  padding: 8px;
+  border-radius: 999px;
+}
+.icon-btn:hover { background: var(--track); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.card h2 { margin-top: 0; font-size: 1.15rem; }
+a { color: var(--accent); }
+
+.field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.field > span:first-child, .field > label { font-size: 0.85rem; color: var(--muted); }
+.row { display: flex; gap: 8px; align-items: flex-end; }
+.row.end { justify-content: flex-end; flex-wrap: wrap; }
+.grow { flex: 1; min-width: 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0 12px; margin-top: 12px; }
+.hint { margin: -6px 0 12px; font-size: 0.8rem; color: var(--muted); }
+.hint.after { margin: 8px 0 0; }
+
+input {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+input:focus-visible, button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button {
+  font: inherit;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: var(--accent);
+  color: var(--accent-text);
+  white-space: nowrap;
+}
+
+button.secondary { background: transparent; color: var(--accent); border-color: var(--border); }
+button.danger { color: var(--tight); }
+button.primary, button.hoppu { font-weight: 700; padding: 12px; }
+button.hoppu { background: var(--hoppu); color: #fff; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+button:disabled { opacity: 0.6; cursor: progress; }
+
+.check { display: flex; gap: 8px; align-items: center; margin: 4px 0 12px; }
+.check input { width: auto; }
+
+.status { min-height: 1.4em; color: var(--muted); margin: 4px 0 8px; }
+.status.error { color: var(--tight); }
+
+.comparison {
+  border-left: 4px solid var(--ok);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.comparison.same { border-left-color: var(--border); }
+.comparison.lost { border-left-color: var(--tight); }
+
+
+/* --- place suggestions -------------------------------------------------- */
+
+.combo { position: relative; }
+/* Icon button inside the From field's right end; the input leaves room. */
+#from { padding-right: 44px; }
+.combo-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--accent);
+}
+.combo-btn:hover { background: var(--track); }
+
+.suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 50vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+}
+
+/* Label + detail stack on the left; the star sits on the right. */
+.opt {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 8px;
+  padding: 8px 4px 8px 12px;
+  cursor: pointer;
+}
+.opt-label, .opt-detail { grid-column: 1; }
+.star {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 6px 8px;
+}
+.star.saved { color: var(--snug); }
+.opt:hover, .opt.active { background: var(--track); }
+.opt-detail { font-size: 0.8rem; color: var(--muted); }
+.opt.gps .opt-label, .opt.action .opt-label { color: var(--accent); font-weight: 600; }
+.opt.info { cursor: default; color: var(--muted); font-style: italic; }
+.opt.info:hover { background: none; }
+
+/* --- result list: summary cards ------------------------------------------ */
+
+.results { list-style: none; margin: 0; padding: 0 0 32px; }
+.itinerary { margin-bottom: 12px; }
+
+.itinerary-open {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  white-space: normal;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+.itinerary-open:hover { border-color: var(--accent); }
+
+.itinerary-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.itinerary-head .times { font-size: 1.2rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.itinerary-head .meta { color: var(--muted); }
+.itinerary-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 0.9rem; color: var(--muted); }
+
+/* Proportional bar: segments are absolutely placed by % (render.js). */
+.bar-wrap { display: flex; flex-direction: column; gap: 3px; }
+/* Durations row: labels centred under their segment (left = centre %). */
+.bar-durations { position: relative; height: 1.1em; font-size: 0.75rem; color: var(--muted); }
+.bar-durations span {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.bar-durations .walk { opacity: 0.75; }
+.bar {
+  position: relative;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--track);
+  overflow: hidden;
+}
+.seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  /* Thin gap between touching segments. */
+  box-shadow: inset -2px 0 0 var(--surface);
+}
+/* Walking: one row of dots along the middle; the minutes sit on a chip. */
+.seg.WALK {
+  background: var(--track) radial-gradient(circle, var(--walk) 1.5px, transparent 2px) left center / 6px 6px repeat-x;
+  color: var(--muted);
+}
+.seg.BUS { background: var(--bus); }
+.seg.TRAM { background: var(--tram); }
+.seg.SUBWAY { background: var(--subway); }
+.seg.RAIL { background: var(--rail); }
+.seg.FERRY { background: var(--ferry); }
+
+.mode {
+  display: inline-block;
+  min-width: 2.4rem;
+  text-align: center;
+  font-weight: 700;
+  color: #fff;
+  border-radius: 6px;
+  padding: 0 6px;
+  margin-right: 6px;
+  background: var(--walk);
+}
+.mode.BUS { background: var(--bus); }
+.mode.TRAM { background: var(--tram); }
+.mode.SUBWAY { background: var(--subway); }
+.mode.RAIL { background: var(--rail); }
+.mode.FERRY { background: var(--ferry); }
+
+.badge {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 8px;
+  margin-left: 4px;
+  color: var(--muted);
+}
+.badge.tight { color: var(--tight); border-color: var(--tight); font-weight: 600; }
+.badge.snug { color: var(--snug); border-color: var(--snug); }
+.badge.live { color: var(--ok); border-color: var(--ok); }
+/* Transfer badges (render.js KIND_CLASS), palette chosen on the test site
+   (colors.html, "A" with green for plenty). */
+.badge.k-ok { color: var(--ok); border-color: var(--ok); }
+.badge.k-snug { color: var(--snug); border-color: var(--snug); }
+.badge.k-tight { color: var(--tight); border-color: var(--tight); font-weight: 600; }
+.badge.k-run { color: var(--run); border-color: var(--run); font-weight: 600; }
+.badge.k-impossible { color: var(--muted); border-style: dashed; text-decoration: line-through; opacity: 0.75; }
+.tl-badges { margin-top: 3px; }
+.tl-badges .badge:first-child { margin-left: 0; }
+
+/* --- detail view: map + vertical timeline -------------------------------- */
+
+.detail {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow-y: auto;
+  background: var(--bg);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.detail-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* above Leaflet's panes (400-700) */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: calc(env(safe-area-inset-top) + 6px) 8px 6px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.detail-bar h2 { margin: 0; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+
+/* Versions of the route after following options. */
+.versions { display: flex; flex-wrap: wrap; gap: 6px; max-width: 40rem; margin: 0 auto; padding: 10px 16px 0; }
+.versions .version { border-radius: 14px; font-variant-numeric: tabular-nums; }
+.versions .version.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+
+.map { height: 45vh; min-height: 240px; background: #1b2029; }
+/* OSM has no dark style: invert the tiles only, so route lines keep colour.
+   hue-rotate(180deg) turns inverted blue water back to (dark) blue. */
+.map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.85) saturate(0.5); }
+.map .leaflet-control-attribution { background: rgb(20 24 33 / 0.75); color: #b8c0cc; }
+.map .leaflet-control-attribution a { color: #8cc4ff; }
+
+.timeline {
+  list-style: none;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 16px 16px 32px;
+}
+
+/* Columns: clock | rail (dot + line to the next row) | text. Rows touch, so
+   each rail segment runs into the next row's dot. --c is the leg colour. */
+.tl-row {
+  display: grid;
+  grid-template-columns: 3.2rem 22px 1fr;
+  column-gap: 8px;
+  --c: var(--walk);
+}
+.tl-row.BUS { --c: var(--bus); }
+.tl-row.TRAM { --c: var(--tram); }
+.tl-row.SUBWAY { --c: var(--subway); }
+.tl-row.RAIL { --c: var(--rail); }
+.tl-row.FERRY { --c: var(--ferry); }
+
+.tl-time { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 0.9rem; padding-top: 1px; }
+.tl-rail { position: relative; }
+.tl-rail::before {
+  content: "";
+  position: absolute;
+  top: 0.7rem;
+  bottom: -0.7rem; /* reach the next row's dot centre */
+  left: 50%;
+  width: 6px;
+  transform: translateX(-50%);
+  background: var(--c);
+}
+.tl-row.WALK .tl-rail::before {
+  width: 4px;
+  background: radial-gradient(circle, var(--walk) 1.6px, transparent 2px) center top / 4px 8px repeat-y;
+}
+.tl-row.end .tl-rail::before { display: none; }
+/* A dot sits between two legs; it is ringed in the colour of the leg that
+   starts there. */
+.tl-dot {
+  position: absolute;
+  top: 0.7rem;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--surface);
+  border: 3px solid var(--c);
+  z-index: 1;
+}
+/* Arrival: solid dot in the text colour. */
+.tl-row.end .tl-dot { width: 18px; height: 18px; background: var(--text); border-color: var(--text); }
+.tl-body { padding-bottom: 18px; min-width: 0; overflow-wrap: anywhere; }
+.tl-place { font-weight: 600; }
+.tl-what { margin-top: 4px; }
+.tl-dur { color: var(--muted); }
+
+/* --- settings sheet ------------------------------------------------------ */
+
+.sheet {
+  border: none;
+  padding: 16px;
+  width: 100%;
+  max-width: 40rem;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0 auto;
+  background: var(--bg);
+  color: var(--text);
+}
+.sheet::backdrop { background: rgb(0 0 0 / 0.5); }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.sheet-head h2 { margin: 0; font-size: 1.3rem; }
+.sheet-actions { display: flex; gap: 4px; }
+
+/* Help sheet: running text. */
+.help p, .help li, .help dd { font-size: 0.92rem; line-height: 1.45; }
+.help ul { padding-left: 1.2rem; margin: 6px 0; }
+.help li { margin-bottom: 4px; }
+.help dl { margin: 6px 0; }
+.help dt { font-weight: 700; margin-top: 8px; }
+.help dd { margin: 2px 0 0; color: var(--muted); }
+.help .badge { margin-left: 0; }
+.sheet-section { border-top: 1px solid var(--border); margin-top: 20px; padding-top: 12px; }
+.sheet-section h3 { margin: 0 0 4px; font-size: 1rem; }
+.sheet-section .hint { margin: 0 0 10px; }
+.profile-panel .hint { margin: 0 0 8px; }
+
+/* Segmented control for Normal / Hoppu. */
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.tabs [role="tab"] { flex: 1; background: transparent; color: var(--text); padding: 8px; }
+.tabs [role="tab"][aria-selected="true"] { background: var(--accent); color: var(--accent-text); font-weight: 600; }
+#tab-hoppu[aria-selected="true"] { background: var(--hoppu); color: #fff; }
+
+/* Speed unit (both profiles): a small segmented control like the tabs. */
+.unit-seg-label { font-size: 0.85rem; color: var(--muted); }
+.unit-seg { display: flex; gap: 3px; padding: 3px; margin: 4px 0 0; border: 1px solid var(--border); border-radius: 10px; }
+.unit-seg button { flex: 1; padding: 5px; background: transparent; color: var(--text); font-size: 0.85rem; }
+.unit-seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-text); font-weight: 600; }
+.speed-conv { font-size: 0.75rem; color: var(--muted); }
+
+/* --- transfer box (detail view) ------------------------------------------- */
+
+button.small { padding: 5px 10px; font-size: 0.85rem; }
+
+.transfer {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+.transfer-head { color: var(--muted); }
+.transfer-head strong { color: var(--text); }
+.transfer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 6px; }
+.own { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
+button.small.set { color: var(--text); }
+.own-label { color: var(--muted); }
+.own-input { width: 4.5rem; padding: 5px 8px; }
+.own-stats { width: 100%; font-size: 0.75rem; color: var(--muted); }
+.transfer-error { margin: 6px 0 0; color: var(--tight); }
+
+/* Departure board for a transfer's options: dark in both themes, like a
+   station board. Tokens are redefined inside so badges keep their
+   contrast on the dark background. */
+.options-hint { margin: 8px 0 4px; }
+.board {
+  --muted: #9aa4b2; --border: #2a3446; --tight: #ff6b6b; --snug: #ffb74d;
+  --ok: #81c784; --run: #b18cff;
+  background: #141821;
+  color: #e8ecf2;
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.35);
+}
+.board-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  width: 100%;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  white-space: normal;
+  font-size: 0.88rem;
+}
+.board-row:hover { background: rgb(255 255 255 / 0.1); }
+.board-row.planned { background: rgb(255 255 255 / 0.07); }
+.board-row .mode { margin-right: 0; min-width: 2.2rem; font-size: 0.8rem; }
+.board-row .badge { margin-left: 0; }
+.board-kind { min-width: 4.4rem; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.board-row.earlier .board-kind { color: var(--ok); }
+/* The original route's departure: plain, also when earlier than the current. */
+.board-row.original .board-kind { color: inherit; }
+/* Too short even running: kept on the board (delays happen), but faded. */
+.board-row.too-short { opacity: 0.6; }
+.board-time { font-weight: 700; font-variant-numeric: tabular-nums; }
+.board-arrive { color: var(--muted); font-variant-numeric: tabular-nums; }
+.delta { font-weight: 700; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.delta.earlier { color: var(--ok); }
+.delta.later { color: var(--muted); }
+
+/* Walk/run chip: two halves, running tinted in the "run" violet. */
+.pace {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+.pace > span { display: inline-flex; align-items: center; gap: 3px; padding: 0 7px; }
+.pace svg { width: 12px; height: 12px; }
+.pace-walk { color: var(--text); }
+.pace-run { color: var(--run); background: color-mix(in srgb, var(--run) 12%, transparent); border-left: 1px solid var(--border); }
+.pace.same { padding: 0 7px; color: var(--muted); }
+.long-walk { margin-left: 6px; font-size: 0.8rem; font-weight: 600; color: var(--snug); white-space: nowrap; }
+
+.transfer-times { list-style: none; margin: 0; padding: 0; }
+.transfer-times li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; }
+/* A station pair's samples open under it (details). */
+.transfer-times details { flex: 1; }
+.transfer-times summary { cursor: pointer; }
+.pair-avg { color: var(--muted); font-size: 0.85rem; }
+.transfer-times .samples { list-style: none; margin: 4px 0 0; padding: 0 0 0 12px; }
+.transfer-times .samples li { padding: 3px 0; font-size: 0.85rem; color: var(--muted); }
+
+/* --- saved places --------------------------------------------------------- */
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 12px; }
+.chip {
+  background: var(--track);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.chip:hover { background: var(--border); }
+
+.favorites-list { list-style: none; margin: 0; padding: 0; }
+.favorites-list li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; padding: 6px 0; }
+.fav-text { display: flex; flex-direction: column; min-width: 0; }
+.fav-place { font-size: 0.8rem; color: var(--muted); overflow-wrap: anywhere; }
+.fav-actions { display: flex; gap: 4px; }
+
+/* --- leave at / arrive by, paging ---------------------------------------- */
+
+/* Two-option toggle in place of the "Leave at" label. */
+.time-mode { display: flex; gap: 2px; font-size: 0.85rem; }
+.time-mode label { cursor: pointer; }
+.time-mode input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.time-mode span { display: inline-block; padding: 0 8px; border-radius: 999px; color: var(--muted); }
+.time-mode input:checked + span { background: var(--accent); color: var(--accent-text); font-weight: 600; }
+.time-mode input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.page-btn { display: block; margin: 0 auto 10px; }
+.page-btn.later { width: 100%; margin-bottom: 32px; }
+.results:has(+ .page-btn.later:not([hidden])) { padding-bottom: 4px; }
+
+/* Live vehicle on the map: line name in a pill of its mode colour, centred
+   on the position, with a heading arrow orbiting it (--heading set by
+   map.js: rotate around the pill's centre, then push out 17 px). */
+.vehicle-wrap { position: relative; display: inline-block; transform: translate(-50%, -50%); }
+.vehicle-arrow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 9px solid;
+  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 1px 2px #0008);
+  transform: translate(-50%, -50%) rotate(var(--heading)) translateY(-17px);
+}
+.vehicle {
+  display: inline-block;
+  min-width: 28px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  color: #fff;
+  font: 700 11px/16px system-ui, sans-serif;
+  text-align: center;
+  box-shadow: 0 1px 4px #0009;
+  white-space: nowrap;
+}
+
+/* --- ride view ----------------------------------------------------------- */
+
+/* Line badge in the timeline as a button: opens the vehicle's stops. */
+.mode-btn { display: inline-flex; align-items: center; padding: 0; border: 0; background: none;
+  color: inherit; font: inherit; cursor: pointer; }
+
+/* Sheet over the lower part of the screen; the map above stays visible. */
+.ride-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1100; /* above the detail bar and Leaflet */
+  height: 58dvh;
+  max-width: 40rem;
+  margin: 0 auto;
+  overflow-y: auto;
+  background: var(--bg);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -6px 20px rgb(0 0 0 / 0.35);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.ride-grab { width: 40px; height: 4px; border-radius: 2px; background: var(--border); margin: 8px auto 2px; }
+.ride-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 2px 8px 0 14px; }
+.ride-title { font-weight: 700; }
+.ride-sub { color: var(--muted); font-size: 0.85rem; }
+.ride-close { margin-left: auto; font-size: 1.1rem; }
+.ride-msg { padding: 8px 16px; }
+
+/* Stop list: the timeline's grid and rail, tighter rows. */
+.ride-stops { padding: 8px 12px 16px; }
+.rs-row .tl-body { padding-bottom: 12px; }
+.rs-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-height: 1.5rem; }
+.rs-btn { margin-left: auto; padding: 2px 8px; font-size: 0.78rem; }
+.rs-tag { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.rs-tag.exit { color: var(--c); }
+.rs-row.exit .tl-place { font-weight: 800; }
+.rs-row.exit .tl-dot { width: 18px; height: 18px; }
+.rs-row.passed { opacity: 0.45; }
+/* Past the planned exit: a thinner rail. */
+.rs-row.beyond .tl-rail::before, .rs-row.exit .tl-rail::before { width: 3px; opacity: 0.6; }
+.rs-row.rs-last .tl-rail::before { display: none; }
+.rs-row .board { margin-top: 6px; }
+/* The vehicle between two stops: a pill on the rail. */
+.rs-now .tl-body { padding-bottom: 10px; }
+.rs-now .tl-time { font-weight: 700; color: var(--c); }
+.rs-pill {
+  position: absolute;
+  left: 50%;
+  top: 0.7rem;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  background: var(--c);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 1px 6px;
+  border-radius: 9px;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.rs-now-text { font-size: 0.82rem; color: var(--muted); }
+.board-walk { color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }

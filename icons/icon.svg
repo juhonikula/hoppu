@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- hoppu: stopwatch with the hand racing (logo concept 3b,
+       assets/logos/index.html). Rounded tile for browsers and desktop.
+       The mark is drawn in a 120-unit box (bbox centre 54,60) and scaled
+       3.2x onto the tile's centre. -->
+  <rect width="512" height="512" rx="112" fill="#0b1220"/>
+  <g transform="translate(83 64) scale(3.2)" fill="none" stroke-linecap="round">
+    <path d="M6 52H16M2 66H14M6 80H16" stroke="#ff6319" stroke-width="6"/>
+    <circle cx="64" cy="68" r="38" stroke="#007ac9" stroke-width="12"/>
+    <path d="M64 24V14M54 12H74M93 36L100 29" stroke="#ffffff" stroke-width="8"/>
+    <path d="M64 68L82 46" stroke="#ff6319" stroke-width="8"/>
+    <circle cx="64" cy="68" r="5" fill="#ffffff"/>
+  </g>
+</svg>
